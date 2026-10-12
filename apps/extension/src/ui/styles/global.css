@@ -1,0 +1,122 @@
+@import "tailwindcss";
+
+/*
+  TabShoal tokens (DESIGN.md). Bare custom properties, flipped by the system colour scheme (an
+  extension page has no theme toggle of its own: it follows Chrome), mapped into Tailwind with
+  `@theme inline` so markup never needs `dark:`.
+
+  Neutrals lean faintly toward the sea (hue ~230). One saturated hue, SHOAL BLUE, carries action,
+  focus and "on". FISHBALL AMBER appears only in the notice that grouping has stopped.
+*/
+
+:root {
+  --background: oklch(0.99 0.003 230);
+  --card: oklch(1 0 0);
+  --muted: oklch(0.965 0.006 230);
+  --border: oklch(0.91 0.008 230);
+  --input: oklch(0.86 0.01 230);
+
+  --foreground: oklch(0.24 0.02 240);
+  --muted-foreground: oklch(0.5 0.018 240);
+
+  --primary: oklch(0.52 0.13 245);
+  --primary-hover: oklch(0.47 0.13 245);
+  --primary-foreground: oklch(0.99 0.005 245);
+  --primary-soft: oklch(0.95 0.025 245);
+
+  --amber: oklch(0.8 0.14 75);
+  --amber-soft: oklch(0.96 0.04 85);
+  --amber-foreground: oklch(0.42 0.09 65);
+
+  --destructive: oklch(0.55 0.17 27);
+  color-scheme: light;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --background: oklch(0.21 0.01 240);
+    --card: oklch(0.25 0.012 240);
+    --muted: oklch(0.28 0.012 240);
+    --border: oklch(0.33 0.012 240);
+    --input: oklch(0.4 0.014 240);
+
+    --foreground: oklch(0.94 0.006 230);
+    --muted-foreground: oklch(0.72 0.012 235);
+
+    --primary: oklch(0.74 0.11 245);
+    --primary-hover: oklch(0.8 0.1 245);
+    --primary-foreground: oklch(0.2 0.02 245);
+    --primary-soft: oklch(0.32 0.04 245);
+
+    --amber: oklch(0.82 0.13 78);
+    --amber-soft: oklch(0.3 0.04 75);
+    --amber-foreground: oklch(0.88 0.08 80);
+
+    --destructive: oklch(0.72 0.14 25);
+    color-scheme: dark;
+  }
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-card: var(--card);
+  --color-muted: var(--muted);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-foreground: var(--foreground);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-primary: var(--primary);
+  --color-primary-hover: var(--primary-hover);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-primary-soft: var(--primary-soft);
+  --color-amber: var(--amber);
+  --color-amber-soft: var(--amber-soft);
+  --color-amber-foreground: var(--amber-foreground);
+  --color-destructive: var(--destructive);
+
+  /* Chrome's own UI face, so the panel reads as part of the browser. */
+  --font-sans: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --font-mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+}
+
+html {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* 13px, the size of Chrome's own menus and settings rows. */
+body {
+  font-size: 0.8125rem;
+  line-height: 1.45;
+}
+
+/* Everything clickable shows the pointer; Tailwind v4 leaves buttons on the default cursor. */
+@layer base {
+  :where(
+    a[href],
+    button,
+    summary,
+    [role="button"],
+    [role="checkbox"],
+    [role="radio"],
+    [role="switch"],
+    [role="tab"],
+    [role="menuitem"],
+    [role="menuitemradio"],
+    [role="option"]
+  ):not(:disabled, [aria-disabled="true"], [data-disabled]) {
+    cursor: pointer;
+  }
+
+  /* A switch's label toggles it too. */
+  :where(:has(> [role="switch"]:not([data-disabled]))) label {
+    cursor: pointer;
+  }
+}
+
+:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+}

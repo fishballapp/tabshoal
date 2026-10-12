@@ -1,0 +1,51 @@
+packages:
+  - apps/extension
+  - internal/cn
+  - internal/utils
+  - internal/vite-plugins
+autoInstallPeers: true
+strictPeerDependencies: false
+minimumReleaseAge: 10080
+minimumReleaseAgeExclude:
+  - effect@4.0.0
+  - "@effect/vitest@4.0.0"
+  - "@effect/platform-node@4.0.0"
+  - "@effect/platform-node-shared@4.0.0"
+  - "@effect/sql-d1@4.0.0"
+  - "@effect/atom-react@4.0.0"
+  - undici@8.11.2
+  - ws@8.22.0
+  - "@cloudflare/workers-types@5.20260926.1"
+catalogMode: strict
+cleanupUnusedCatalogs: true
+overrides:
+  "@types/node": "catalog:"
+allowBuilds:
+  "@biomejs/biome": true
+  esbuild: true
+  sharp: false
+catalog:
+  "@base-ui/react": ^1.8.0
+  "@biomejs/biome": ^2.5.13
+  "@tailwindcss/vite": ^4.3.3
+  "@types/chrome": ^0.3.4
+  "@types/node": ^24.13.4
+  "@vitejs/plugin-react": ^6.1.1
+  class-variance-authority: ^0.7.1
+  clsx: ^2.1.1
+  effect: 4.0.0
+  quansync: ^1.0.0
+  sharp: ^0.35.4
+  tailwind-merge: ^3.7.0
+  tailwindcss: ^4.3.3
+  tldts: ^7.4.16
+  type-fest: ^5.9.0
+  typescript: ~7.0.2
+  vite: ^8.3.0
+  vitest: ^5.0.1
+catalogs:
+  web:
+    "@types/react": ^19.3.0
+    "@types/react-dom": ^19.3.0
+    react: ^19.3.0
+    react-dom: ^19.3.0
