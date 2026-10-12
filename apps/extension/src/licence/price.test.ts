@@ -18,9 +18,9 @@ describe('currencyFor', () => {
 
 describe('formatYearlyPrice', () => {
   it('writes the price in the locale’s style', () => {
-    expect(formatYearlyPrice('Europe/London', 'en-GB')).toBe('£5');
-    expect(formatYearlyPrice('America/Chicago', 'en-US')).toBe('$5');
-    expect(formatYearlyPrice('America/Chicago', 'en-GB')).toBe('$5');
-    expect(formatYearlyPrice('Europe/Berlin', 'de-DE')).toBe('5\u00A0€');
+    expect(formatYearlyPrice('Europe/London', 'en-GB')).toBe('£10');
+    expect(formatYearlyPrice('America/Chicago', 'en-US')).toBe('$10');
+    expect(formatYearlyPrice('America/Chicago', 'en-GB')).toBe('$10');
+    expect(formatYearlyPrice('Europe/Berlin', 'de-DE')).toBe('10\u00A0€');
   });
 });

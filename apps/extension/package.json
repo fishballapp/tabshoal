@@ -4,6 +4,10 @@
   "private": true,
   "license": "GPL-3.0-only",
   "type": "module",
+  "exports": {
+    "./polar-config": "./src/licence/polar-config.ts",
+    "./price": "./src/licence/price.ts"
+  },
   "description": "TabShoal: a Chrome (MV3) extension that groups tabs by site, automatically.",
   "scripts": {
     "dev": "vite build --watch",

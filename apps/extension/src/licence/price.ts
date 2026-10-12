@@ -1,5 +1,5 @@
-/** The yearly price in each currency the Polar product carries: $5 / £5 / €5. */
-export const YEARLY_PRICE = { USD: 5, GBP: 5, EUR: 5 } as const;
+/** The yearly price in each currency the Polar product carries: $10 / £10 / €10. */
+export const YEARLY_PRICE = { USD: 10, GBP: 10, EUR: 10 } as const;
 
 export type Currency = keyof typeof YEARLY_PRICE;
 
@@ -57,7 +57,7 @@ export const currencyFor = (timeZone: string): Currency => {
   return 'USD';
 };
 
-/** `£5`, `5 €`, `$5`: the yearly price in the buyer's likely currency, in their locale's style. */
+/** `£10`, `10 €`, `$10`: the yearly price in the buyer's likely currency, in their locale's style. */
 export const formatYearlyPrice = (timeZone: string, locale: string) => {
   const currency = currencyFor(timeZone);
   return new Intl.NumberFormat(locale, {

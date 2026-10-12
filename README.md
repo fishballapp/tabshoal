@@ -9,7 +9,7 @@ and the two sit together in a tab group named after it, like "🐟 github"; clos
 - Works per window and never moves a tab to another window.
 - Nothing leaves your browser except a daily licence check.
 
-$5, £5 or €5 a year after a 14-day free trial. Licensed under [GPL-3.0](LICENSE).
+$10, £10 or €10 a year after a 14-day free trial. Licensed under [GPL-3.0](LICENSE).
 
 ## How it groups
 
