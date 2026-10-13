@@ -19,6 +19,8 @@ type SessionState = {
   openerByTabId: ReadonlyMap<TabId, TabId>;
   /** The tab that was active in each window the last time TabShoal saw it change. */
   lastActiveTabByWindowId: ReadonlyMap<WindowId, TabId>;
+  /** When each tab last stopped being its window's active tab, in milliseconds since the epoch. */
+  leftAtByTabId: ReadonlyMap<TabId, number>;
 };
 
 const IdsSchema = Schema.Array(Schema.Int);
@@ -37,6 +39,7 @@ export const loadSession = async (): Promise<SessionState> => {
     'provisionalGroupIds',
     'openerByTabId',
     'lastActiveTabByWindowId',
+    'leftAtByTabId',
   ]);
   return {
     untrackedTabIds: new Set(decodeIds(stored.untrackedTabIds).map(TabId)),
@@ -53,6 +56,12 @@ export const loadSession = async (): Promise<SessionState> => {
       decodePairs(stored.lastActiveTabByWindowId).map(([windowId, tabId]): [WindowId, TabId] => [
         WindowId(windowId),
         TabId(tabId),
+      ]),
+    ),
+    leftAtByTabId: new Map(
+      decodePairs(stored.leftAtByTabId).map(([tabId, leftAt]): [TabId, number] => [
+        TabId(tabId),
+        leftAt,
       ]),
     ),
   };

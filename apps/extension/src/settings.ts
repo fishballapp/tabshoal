@@ -18,7 +18,10 @@ export const SettingsSchema = Schema.Struct({
   shouldKeepGroupsAtStart: Schema.Boolean.pipe(
     Schema.withDecodingDefaultKey(Effect.succeed(false)),
   ),
-  /** Closing the tab you're on activates the tab that opened it, if that is still open here. */
+  /**
+   * Closing the tab you're on activates the tab that opened it, if that is still open here and you
+   * were on it recently (`RECENT_OPENER_MS`).
+   */
   shouldReturnToOpener: Schema.Boolean.pipe(Schema.withDecodingDefaultKey(Effect.succeed(true))),
 });
 

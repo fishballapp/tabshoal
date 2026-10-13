@@ -128,18 +128,24 @@ const recordOpener = async ({ id, openerTabId }: chrome.tabs.Tab) => {
   await saveSession({ openerByTabId: new Map(openerByTabId).set(TabId(id), TabId(openerTabId)) });
 };
 
+/** Records the window's new active tab, and when the one before it was left. */
 const recordActive = async (tabId: TabId, windowId: WindowId) => {
-  const { lastActiveTabByWindowId } = await loadSession();
+  const { lastActiveTabByWindowId, leftAtByTabId } = await loadSession();
+  const left = lastActiveTabByWindowId.get(windowId);
   await saveSession({
     lastActiveTabByWindowId: new Map(lastActiveTabByWindowId).set(windowId, tabId),
+    leftAtByTabId:
+      left === undefined || left === tabId
+        ? leftAtByTabId
+        : new Map(leftAtByTabId).set(left, Date.now()),
   });
 };
 
-const openerOf = async (tabId: TabId | undefined) => {
+const openerOf = async (tabId: TabId | undefined, leftAtByTabId: ReadonlyMap<TabId, number>) => {
   if (tabId === undefined) return undefined;
   const tab = await chrome.tabs.get(tabId).catch(() => undefined);
   if (tab?.id === undefined) return undefined;
-  return { id: TabId(tab.id), windowId: WindowId(tab.windowId) };
+  return { id: TabId(tab.id), windowId: WindowId(tab.windowId), leftAt: leftAtByTabId.get(tabId) };
 };
 
 /**
@@ -169,15 +175,17 @@ const returnToOpener = async ({
     lastActiveTabByWindowId: new Map(
       [...session.lastActiveTabByWindowId].filter(([, active]) => active !== tabId),
     ),
+    leftAtByTabId: new Map([...session.leftAtByTabId].filter(([left]) => left !== tabId)),
   });
   const target = tabToReturnTo({
     wasActive,
     isWindowClosing,
     windowId,
-    opener: await openerOf(session.openerByTabId.get(tabId)),
+    opener: await openerOf(session.openerByTabId.get(tabId), session.leftAtByTabId),
     shouldReturnToOpener: settings.shouldReturnToOpener,
     isGroupingAllowed: isGroupingAllowed(entitlement),
     isWindowPaused: session.pausedWindowIds.has(windowId),
+    now: Date.now(),
   });
   if (target === undefined) return;
   await chrome.tabs.update(target, { active: true });

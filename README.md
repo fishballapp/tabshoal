@@ -72,5 +72,5 @@ With the build loaded:
    TabShoal's groups line up after the pinned tabs, your own groups after them; drag one of them
    away and it swims back.
 8. Open a tab from another one, then close it while you're on it: you land back on the tab that
-   opened it, if that's still open in the window. Turn off **Closing a tab goes back to the tab that
+   opened it, if that's still open in the window and you were on it in the last 10 minutes. Turn off **Closing a tab goes back to the tab that
    opened it** and Chrome picks the next tab instead.

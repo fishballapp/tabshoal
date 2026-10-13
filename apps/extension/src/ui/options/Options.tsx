@@ -92,7 +92,7 @@ export const Options = () => {
           <Row
             label="Closing a tab goes back to the tab that opened it"
             htmlFor="return-to-opener"
-            description="Only when that tab is still open in this window."
+            description="Only when that tab is still open in this window and you were on it in the last 10 minutes."
             control={
               <Switch
                 id="return-to-opener"
