@@ -1,8 +1,8 @@
+import { type Entitlement, isGroupingAllowed } from '@fishballapps/extension-licence/entitlement';
+import { loadEntitlement } from '@fishballapps/extension-licence/store';
 import { useEffect, useState } from 'react';
 import { loadSession, saveSession } from '../../chrome/session';
 import { WindowId } from '../../grouping/plan';
-import { type Entitlement, isGroupingAllowed } from '../../licence/entitlement';
-import { loadEntitlement } from '../../licence/store';
 import { send } from '../../messages';
 import { Button } from '../components/Button';
 import { Mark } from '../components/Mark';

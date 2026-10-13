@@ -14,6 +14,8 @@ export const LicenceSchema = Schema.Struct({
   grantedAt: Schema.Int,
   /** Epoch ms before which the daily check doesn't ask Polar again. */
   nextCheckAt: Schema.Int,
+  /** Epoch ms the key stops working, for a key that expires (Vinimal's One year). */
+  expiresAt: Schema.optionalKey(Schema.Int),
 });
 
 export type Licence = typeof LicenceSchema.Type;
@@ -24,7 +26,7 @@ export type Entitlement =
   | { status: 'licensed' }
   /** A licence that hasn't reached Polar for longer than {@link OFFLINE_DAYS}. */
   | { status: 'unreachable' }
-  /** Polar said the licence ended, and the trial is over. */
+  /** Polar said the licence ended, or it expired, and the trial is over. */
   | { status: 'ended' };
 
 export const entitlementOf = ({
@@ -36,14 +38,14 @@ export const entitlementOf = ({
   licence: Licence | undefined;
   now: number;
 }): Entitlement => {
-  if (licence?.status === 'granted') {
+  if (licence?.status === 'granted' && !isExpired(licence, now)) {
     return now - licence.grantedAt <= OFFLINE_DAYS * DAY
       ? { status: 'licensed' }
       : { status: 'unreachable' };
   }
   const daysLeft = Math.ceil((installedAt + TRIAL_DAYS * DAY - now) / DAY);
   if (daysLeft > 0) return { status: 'trial', daysLeft };
-  return licence?.status === 'ended' ? { status: 'ended' } : { status: 'trial-ended' };
+  return licence === undefined ? { status: 'trial-ended' } : { status: 'ended' };
 };
 
 export type StoppedEntitlement = Exclude<Entitlement, { status: 'trial' | 'licensed' }>;
@@ -53,12 +55,21 @@ export const isGroupingAllowed = (
 ): entitlement is Exclude<Entitlement, StoppedEntitlement> =>
   entitlement.status === 'trial' || entitlement.status === 'licensed';
 
+/** An expiring key stops on time, without waiting for the daily check to hear it from Polar. */
+const isExpired = ({ expiresAt }: Licence, now: number) =>
+  expiresAt !== undefined && expiresAt <= now;
+
 /** A key Polar has just granted. */
-export const grantedLicence = (key: string, now: number): Licence => ({
+export const grantedLicence = (
+  key: string,
+  { expiresAt }: Extract<Validation, { type: 'granted' }>,
+  now: number,
+): Licence => ({
   key,
   status: 'granted',
   grantedAt: now,
   nextCheckAt: now + DAY,
+  ...(expiresAt === undefined ? {} : { expiresAt }),
 });
 
 /**
@@ -69,7 +80,7 @@ export const grantedLicence = (key: string, now: number): Licence => ({
 export const afterValidation = (licence: Licence, validation: Validation, now: number): Licence => {
   switch (validation.type) {
     case 'granted':
-      return { ...licence, status: 'granted', grantedAt: now, nextCheckAt: now + DAY };
+      return grantedLicence(licence.key, validation, now);
     case 'rejected':
       return { ...licence, status: 'ended', nextCheckAt: now + DAY };
     case 'rate-limited':

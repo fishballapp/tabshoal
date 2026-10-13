@@ -1,6 +1,7 @@
 packages:
   - apps/extension
   - internal/cn
+  - internal/extension-licence
   - internal/utils
   - internal/vite-plugins
 autoInstallPeers: true

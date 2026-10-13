@@ -1,3 +1,10 @@
+import { isGroupingAllowed } from '@fishballapps/extension-licence/entitlement';
+import { loadEntitlement, recordInstall } from '@fishballapps/extension-licence/store';
+import {
+  createLicenceWorker,
+  LICENCE_ALARM,
+  startLicenceAlarm,
+} from '@fishballapps/extension-licence/worker';
 import { createAsyncQueue } from '@fishballapps/utils';
 import { applyOperation, isOurEcho, ourTabIdsIn, takeSnapshot } from './chrome/browser';
 import { isDragging } from './chrome/dragging';
@@ -5,9 +12,7 @@ import { tabToReturnTo } from './chrome/opener';
 import { isUntrackedAfterMove, loadSession, saveSession } from './chrome/session';
 import { GroupId, isOurGroup, NO_GROUP, plan, TabId, WindowId } from './grouping/plan';
 import { isOurTitle } from './grouping/site';
-import { afterValidation, grantedLicence, isGroupingAllowed } from './licence/entitlement';
-import { validateKey } from './licence/polar';
-import { loadEntitlement, loadLicensing, recordInstall, saveLicence } from './licence/store';
+import { licenceServer } from './licence/polar';
 import type { Message, Reply } from './messages';
 import { loadSettings } from './settings';
 
@@ -243,42 +248,23 @@ chrome.storage.onChanged.addListener((changes, area) => {
 // --- The licence: one daily check against Polar, kept apart from grouping so a slow network
 // never holds up a tab.
 
-const enqueueLicence = createAsyncQueue();
-const LICENCE_ALARM = 'licence-check';
-
-const checkLicence = () =>
-  enqueueLicence(async () => {
-    const now = Date.now();
-    const { licence } = await loadLicensing(now);
-    if (licence === undefined || now < licence.nextCheckAt) return;
-    await saveLicence(afterValidation(licence, await validateKey(licence.key), now));
-  });
-
-const activateLicence = (key: string) =>
-  enqueueLicence(async () => {
-    const trimmed = key.trim();
-    const validation = await validateKey(trimmed);
-    if (validation.type === 'granted') await saveLicence(grantedLicence(trimmed, Date.now()));
-    return validation.type;
-  });
+const licence = createLicenceWorker(licenceServer);
 
 chrome.alarms.onAlarm.addListener(({ name }) => {
-  if (name === LICENCE_ALARM) void checkLicence();
+  if (name === LICENCE_ALARM) void licence.check();
 });
-
-const startAlarm = () => chrome.alarms.create(LICENCE_ALARM, { periodInMinutes: 60 });
 
 chrome.runtime.onInstalled.addListener(() => {
   void recordInstall();
-  void startAlarm();
+  void startLicenceAlarm();
   scheduleReconcile(0);
 });
 
 // Tab IDs change across a restart, so whatever was untracked is gone: start as Regroup all does.
 chrome.runtime.onStartup.addListener(() => {
-  void startAlarm();
+  void startLicenceAlarm();
   void regroupAll();
-  void checkLicence();
+  void licence.check();
 });
 
 const answer = async (message: Message): Promise<Reply<Message>> => {
@@ -287,7 +273,7 @@ const answer = async (message: Message): Promise<Reply<Message>> => {
       await regroupAll();
       return null;
     case 'activate-licence':
-      return activateLicence(message.key);
+      return licence.activate(message.key);
   }
 };
 

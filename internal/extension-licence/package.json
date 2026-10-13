@@ -1,0 +1,26 @@
+{
+  "name": "@fishballapps/extension-licence",
+  "version": "0.0.0",
+  "private": true,
+  "license": "GPL-3.0-only",
+  "type": "module",
+  "description": "A Chrome extension's Polar licence: a trial counted in the browser, keys validated against Polar, an hourly re-check. TabShoal and Vinimal use it.",
+  "exports": {
+    "./entitlement": "./src/entitlement.ts",
+    "./polar": "./src/polar.ts",
+    "./store": "./src/store.ts",
+    "./worker": "./src/worker.ts"
+  },
+  "scripts": {
+    "test": "vitest run",
+    "check:effect": "effect-tsgo diagnostics --project tsconfig.json --format text"
+  },
+  "dependencies": {
+    "@fishballapps/utils": "workspace:*",
+    "effect": "catalog:"
+  },
+  "devDependencies": {
+    "@types/chrome": "catalog:",
+    "vitest": "catalog:"
+  }
+}

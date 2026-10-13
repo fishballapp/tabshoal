@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { afterValidation, entitlementOf, type Licence } from './entitlement';
+import { afterValidation, entitlementOf, grantedLicence, type Licence } from './entitlement';
 
 const DAY = 24 * 60 * 60 * 1000;
 const installedAt = Date.UTC(2026, 9, 1);
@@ -47,6 +47,33 @@ describe('entitlementOf', () => {
       status: 'trial',
       daysLeft: 13,
     });
+  });
+});
+
+describe('an expiring key', () => {
+  const now = installedAt + 40 * DAY;
+  const expiring = (expiresAt: number) => licence({ grantedAt: now - DAY, expiresAt });
+
+  it('licenses until it expires, then ends without waiting for Polar', () => {
+    expect(entitlementOf({ installedAt, licence: expiring(now + 1), now })).toEqual({
+      status: 'licensed',
+    });
+    expect(entitlementOf({ installedAt, licence: expiring(now), now })).toEqual({
+      status: 'ended',
+    });
+  });
+
+  it('is stored with its expiry, and loses it when renewed by a key that doesn’t expire', () => {
+    expect(grantedLicence('VINIMAL-1', { type: 'granted', expiresAt: now + DAY }, now)).toEqual({
+      key: 'VINIMAL-1',
+      status: 'granted',
+      grantedAt: now,
+      nextCheckAt: now + DAY,
+      expiresAt: now + DAY,
+    });
+    expect(afterValidation(expiring(now + DAY), { type: 'granted' }, now)).not.toHaveProperty(
+      'expiresAt',
+    );
   });
 });
 
