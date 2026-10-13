@@ -3,7 +3,6 @@ import tailwindcss from '@tailwindcss/vite';
 import react from '@vitejs/plugin-react';
 import { defineConfig, type Plugin } from 'vite';
 import packageJson from './package.json' with { type: 'json' };
-import { productionPolar } from './src/licence/polar-config.ts';
 
 const ICON_SIZES = [16, 32, 48, 128] as const;
 const icons = Object.fromEntries(ICON_SIZES.map(size => [size, `icons/icon-${size}.png`]));
@@ -34,22 +33,18 @@ const emitManifest = (): Plugin => ({
   },
 });
 
-export default defineConfig(({ mode }) => {
-  // Stops a release build that would talk to a production product that doesn't exist yet.
-  if (mode === 'release') productionPolar();
-  return {
-    plugins: [react(), tailwindcss(), stripHtmlComments(), emitManifest()],
-    build: {
-      outDir: 'dist',
-      emptyOutDir: true,
-      sourcemap: false,
-      rollupOptions: {
-        input: { background: 'src/background.ts', popup: 'popup.html', options: 'options.html' },
-        output: {
-          entryFileNames: chunk =>
-            chunk.name === 'background' ? 'background.js' : 'assets/[name]-[hash].js',
-        },
+export default defineConfig({
+  plugins: [react(), tailwindcss(), stripHtmlComments(), emitManifest()],
+  build: {
+    outDir: 'dist',
+    emptyOutDir: true,
+    sourcemap: false,
+    rollupOptions: {
+      input: { background: 'src/background.ts', popup: 'popup.html', options: 'options.html' },
+      output: {
+        entryFileNames: chunk =>
+          chunk.name === 'background' ? 'background.js' : 'assets/[name]-[hash].js',
       },
     },
-  };
+  },
 });

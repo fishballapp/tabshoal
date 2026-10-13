@@ -1,9 +1,9 @@
 import * as Option from 'effect/Option';
 import * as Schema from 'effect/Schema';
-import { POLAR, type PolarConfig, productionPolar } from './polar-config';
+import { POLAR, type PolarConfig } from './polar-config';
 
 export const polar: PolarConfig =
-  import.meta.env.MODE === 'release' ? productionPolar() : POLAR.sandbox;
+  import.meta.env.MODE === 'release' ? POLAR.production : POLAR.sandbox;
 
 /** What Polar said about a key. */
 export type Validation =
