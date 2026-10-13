@@ -6,6 +6,7 @@ export * from './createAsyncQueue';
 export * from './createFindBy';
 export * from './createMigrator';
 export * from './formatRelativeDate';
+export * from './localPrice';
 export * from './number';
 export * from './sortBy';
 export * from './sum';
