@@ -15,11 +15,19 @@ type SessionState = {
   ourTabIds: ReadonlySet<TabId>;
   /** Groups we created and haven't yet seen titled with the watermark. */
   provisionalGroupIds: ReadonlySet<GroupId>;
+  /** The tab each tab was opened from, as Chrome reported it when the tab was created. */
+  openerByTabId: ReadonlyMap<TabId, TabId>;
+  /** The tab that was active in each window the last time TabShoal saw it change. */
+  lastActiveTabByWindowId: ReadonlyMap<WindowId, TabId>;
 };
 
 const IdsSchema = Schema.Array(Schema.Int);
 const decodeIds = (value: unknown) =>
   Option.getOrElse(Schema.decodeUnknownOption(IdsSchema)(value), () => []);
+
+const PairsSchema = Schema.Array(Schema.Tuple([Schema.Int, Schema.Int]));
+const decodePairs = (value: unknown) =>
+  Option.getOrElse(Schema.decodeUnknownOption(PairsSchema)(value), () => []);
 
 export const loadSession = async (): Promise<SessionState> => {
   const stored = await chrome.storage.session.get([
@@ -27,15 +35,30 @@ export const loadSession = async (): Promise<SessionState> => {
     'pausedWindowIds',
     'ourTabIds',
     'provisionalGroupIds',
+    'openerByTabId',
+    'lastActiveTabByWindowId',
   ]);
   return {
     untrackedTabIds: new Set(decodeIds(stored.untrackedTabIds).map(TabId)),
     pausedWindowIds: new Set(decodeIds(stored.pausedWindowIds).map(WindowId)),
     ourTabIds: new Set(decodeIds(stored.ourTabIds).map(TabId)),
     provisionalGroupIds: new Set(decodeIds(stored.provisionalGroupIds).map(GroupId)),
+    openerByTabId: new Map(
+      decodePairs(stored.openerByTabId).map(([opened, opener]): [TabId, TabId] => [
+        TabId(opened),
+        TabId(opener),
+      ]),
+    ),
+    lastActiveTabByWindowId: new Map(
+      decodePairs(stored.lastActiveTabByWindowId).map(([windowId, tabId]): [WindowId, TabId] => [
+        WindowId(windowId),
+        TabId(tabId),
+      ]),
+    ),
   };
 };
 
+/** A map is stored as its entries, so each value is the array of its pairs. */
 export const saveSession = (state: Partial<SessionState>) =>
   chrome.storage.session.set(
     Object.fromEntries(Object.entries(state).map(([key, ids]) => [key, [...ids]])),

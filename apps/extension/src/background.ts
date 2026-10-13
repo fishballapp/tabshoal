@@ -1,6 +1,7 @@
 import { createAsyncQueue } from '@fishballapps/utils';
 import { applyOperation, isOurEcho, ourTabIdsIn, takeSnapshot } from './chrome/browser';
 import { isDragging } from './chrome/dragging';
+import { tabToReturnTo } from './chrome/opener';
 import { isUntrackedAfterMove, loadSession, saveSession } from './chrome/session';
 import { GroupId, isOurGroup, NO_GROUP, plan, TabId, WindowId } from './grouping/plan';
 import { isOurTitle } from './grouping/site';
@@ -115,6 +116,68 @@ const recordUserMove = async ({
   });
 };
 
+/** Remembers which tab opened `tab`, a link to it or `window.open`, `noopener` or not. */
+const recordOpener = async ({ id, openerTabId }: chrome.tabs.Tab) => {
+  if (id === undefined || openerTabId === undefined) return;
+  const { openerByTabId } = await loadSession();
+  await saveSession({ openerByTabId: new Map(openerByTabId).set(TabId(id), TabId(openerTabId)) });
+};
+
+const recordActive = async (tabId: TabId, windowId: WindowId) => {
+  const { lastActiveTabByWindowId } = await loadSession();
+  await saveSession({
+    lastActiveTabByWindowId: new Map(lastActiveTabByWindowId).set(windowId, tabId),
+  });
+};
+
+const openerOf = async (tabId: TabId | undefined) => {
+  if (tabId === undefined) return undefined;
+  const tab = await chrome.tabs.get(tabId).catch(() => undefined);
+  if (tab?.id === undefined) return undefined;
+  return { id: TabId(tab.id), windowId: WindowId(tab.windowId) };
+};
+
+/**
+ * Forgets the closed tab, then activates its opener if the rules say so. Queued straight after the
+ * close, so the window's last active tab is still the closed one: Chrome reports the close before
+ * it activates the next tab, and that activation is recorded after this job.
+ */
+const returnToOpener = async ({
+  tabId,
+  windowId,
+  isWindowClosing,
+}: {
+  tabId: TabId;
+  windowId: WindowId;
+  isWindowClosing: boolean;
+}) => {
+  const [settings, entitlement, session] = await Promise.all([
+    loadSettings(),
+    loadEntitlement(),
+    loadSession(),
+  ]);
+  const wasActive = session.lastActiveTabByWindowId.get(windowId) === tabId;
+  await saveSession({
+    openerByTabId: new Map(
+      [...session.openerByTabId].filter(([opened, opener]) => opened !== tabId && opener !== tabId),
+    ),
+    lastActiveTabByWindowId: new Map(
+      [...session.lastActiveTabByWindowId].filter(([, active]) => active !== tabId),
+    ),
+  });
+  const target = tabToReturnTo({
+    wasActive,
+    isWindowClosing,
+    windowId,
+    opener: await openerOf(session.openerByTabId.get(tabId)),
+    shouldReturnToOpener: settings.shouldReturnToOpener,
+    isGroupingAllowed: isGroupingAllowed(entitlement),
+    isWindowPaused: session.pausedWindowIds.has(windowId),
+  });
+  if (target === undefined) return;
+  await chrome.tabs.update(target, { active: true });
+};
+
 chrome.tabs.onUpdated.addListener((rawTabId, changeInfo, tab) => {
   const tabId = TabId(rawTabId);
   if (changeInfo.groupId !== undefined) {
@@ -132,16 +195,23 @@ chrome.tabs.onUpdated.addListener((rawTabId, changeInfo, tab) => {
   if (changeInfo.url !== undefined || changeInfo.pinned !== undefined) scheduleReconcile();
 });
 
-chrome.tabs.onCreated.addListener(() => scheduleReconcile());
+chrome.tabs.onCreated.addListener(tab => {
+  void enqueue(() => recordOpener(tab));
+  scheduleReconcile();
+});
 chrome.tabs.onAttached.addListener(() => scheduleReconcile());
 chrome.tabs.onDetached.addListener(() => scheduleReconcile());
-chrome.tabs.onActivated.addListener(() => scheduleReconcile());
+chrome.tabs.onActivated.addListener(({ tabId, windowId }) => {
+  void enqueue(() => recordActive(TabId(tabId), WindowId(windowId)));
+  scheduleReconcile();
+});
 // A group dragged out of our block at the start swims back on the next run.
 chrome.tabs.onMoved.addListener(() => scheduleReconcile());
 chrome.tabGroups.onMoved.addListener(() => scheduleReconcile());
 
-chrome.tabs.onRemoved.addListener((rawTabId, { isWindowClosing }) => {
-  const only = new Set([TabId(rawTabId)]);
+chrome.tabs.onRemoved.addListener((rawTabId, { windowId, isWindowClosing }) => {
+  const tabId = TabId(rawTabId);
+  const only = new Set([tabId]);
   void enqueue(async () => {
     const { untrackedTabIds, ourTabIds } = await loadSession();
     await saveSession({
@@ -149,6 +219,7 @@ chrome.tabs.onRemoved.addListener((rawTabId, { isWindowClosing }) => {
       ourTabIds: ourTabIds.difference(only),
     });
   });
+  void enqueue(() => returnToOpener({ tabId, windowId: WindowId(windowId), isWindowClosing }));
   if (!isWindowClosing) scheduleReconcile();
 });
 

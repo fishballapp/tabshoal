@@ -34,6 +34,7 @@ Click the toolbar icon for **Regroup all**, **Pause on this window**, your licen
 | Group names: `🐟 google` or `🐟 google.com` | `🐟 google` |
 | Collapse groups you're not using | off |
 | Keep groups at the start (right after pinned tabs) | off |
+| Closing a tab goes back to the tab that opened it | on |
 
 ## Permissions
 
@@ -70,3 +71,6 @@ With the build loaded:
    not using**: every group but the current tab's folds. Turn on **Keep groups at the start**:
    TabShoal's groups line up after the pinned tabs, your own groups after them; drag one of them
    away and it swims back.
+8. Open a tab from another one, then close it while you're on it: you land back on the tab that
+   opened it, if that's still open in the window. Turn off **Closing a tab goes back to the tab that
+   opened it** and Chrome picks the next tab instead.

@@ -3,14 +3,19 @@ import { describe, expect, it } from 'vitest';
 import { DEFAULT_SETTINGS, normaliseSiteEntry, SettingsSchema } from './settings';
 
 describe('settings', () => {
-  it('defaults to two tabs, nothing excluded, short names, groups left as they are', () => {
+  it('defaults to two tabs, nothing excluded, short names, groups left as they are, closing returns to the opener', () => {
     expect(DEFAULT_SETTINGS).toEqual({
       minimumTabs: 2,
       neverGroup: [],
       titleStyle: 'name',
       shouldCollapseInactive: false,
       shouldKeepGroupsAtStart: false,
+      shouldReturnToOpener: true,
     });
+  });
+
+  it('keeps closing on the opener when a stored settings object predates the setting', () => {
+    expect(Schema.decodeSync(SettingsSchema)({ minimumTabs: 3 }).shouldReturnToOpener).toBe(true);
   });
 
   it('fills a missing setting from its default', () => {

@@ -85,6 +85,24 @@ export const Options = () => {
       </section>
 
       <NeverGroup sites={settings.neverGroup} onChange={neverGroup => update({ neverGroup })} />
+
+      <section className="flex flex-col gap-3">
+        <h2 className="font-medium">Advanced</h2>
+        <div className="rounded-lg border border-border bg-card">
+          <Row
+            label="Closing a tab goes back to the tab that opened it"
+            htmlFor="return-to-opener"
+            description="Only when that tab is still open in this window."
+            control={
+              <Switch
+                id="return-to-opener"
+                checked={settings.shouldReturnToOpener}
+                onCheckedChange={shouldReturnToOpener => update({ shouldReturnToOpener })}
+              />
+            }
+          />
+        </div>
+      </section>
     </main>
   );
 };
