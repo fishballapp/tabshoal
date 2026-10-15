@@ -1,15 +1,17 @@
 name: CI
 
 # Every gate, on every branch. The private monorepo this tree is ejected from pushes each of its
-# pull requests to the branch pr/<number> here, so these run before the private merge.
+# pull requests to the branch pr/<number> here, so these run before the private merge; cd.yml calls
+# this workflow again on main before it publishes.
 on:
   push:
     branches-ignore: [main]
+  workflow_call:
 
 permissions:
   contents: read
 
-# A newer snapshot of a branch supersedes the one under test.
+# A newer snapshot of a branch supersedes the one under test; main queues behind cd.yml's publish.
 concurrency:
   group: ci-${{ github.ref }}
   cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}

@@ -1,0 +1,113 @@
+name: CD
+
+# Every push to main runs every gate (ci.yml), then hands the extension to the Chrome Web Store with
+# extship (npmjs.com/package/extship). The store's state decides, not the push: extship skips a
+# version the store already has, so most runs only read its status, and a failed publish is retried
+# by the next push or a dispatch.
+#
+# Keyless: GitHub's OIDC token is exchanged through Workload Identity Federation for a one-hour
+# access token of the service account registered on the store's dashboard. Only this file, on main,
+# in this repository can mint one (the provider's condition), so keep its name.
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      dry-run:
+        description: Read the store status and publish nothing
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+
+env:
+  ITEM_ID: cejljamajcaaegloakhfeedkbcdacaie
+  # Fishball's publisher on the store and the Google Cloud identity that publishes for it. None of
+  # these is a secret: the provider's condition holds the access.
+  CWS_PUBLISHER_ID: 6b6701f0-12b0-401c-bc4d-99aa3eb67846
+  CWS_WIF_PROVIDER: projects/451396240516/locations/global/workloadIdentityPools/github/providers/github-actions
+  CWS_SERVICE_ACCOUNT: chrome-web-store@fishball-chrome-web-store.iam.gserviceaccount.com
+
+jobs:
+  gates:
+    name: Gates
+    uses: ./.github/workflows/ci.yml
+
+  # Without id-token, so no build script can mint a token.
+  build:
+    name: Build the zip
+    needs: gates
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: pnpm/action-setup@v6
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 26
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm -F @tabshoal/extension zip
+      - uses: actions/upload-artifact@v7
+        with:
+          name: extension
+          path: apps/extension/tabshoal-*.zip
+          if-no-files-found: error
+          retention-days: 7
+
+  # Runs nothing from this repository: the zip, then extship at an exact version.
+  publish:
+    name: ${{ inputs.dry-run && 'Dry run' || 'Publish' }}
+    needs: build
+    # One at a time, so two runs never race on one submission. The second waits, then finds the
+    # version on the store and skips.
+    concurrency:
+      group: chrome-publish
+      cancel-in-progress: false
+    runs-on: ubuntu-latest
+    # extship waits up to 10 minutes for the store to process an upload.
+    timeout-minutes: 20
+    permissions:
+      id-token: write
+    steps:
+      - uses: actions/download-artifact@v8
+        with:
+          name: extension
+          path: ${{ runner.temp }}/extension
+
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 26
+
+      # An exact version; its own dependencies resolve at install time.
+      - run: npm install --global extship@0.1.0
+
+      # After the install and with no credentials file, so nothing else in the job can read the
+      # token; the action masks it in the log.
+      - id: auth
+        uses: google-github-actions/auth@7c6bc770dae815cd3e89ee6cdf493a5fab2cc093 # v3.0.0
+        with:
+          workload_identity_provider: ${{ env.CWS_WIF_PROVIDER }}
+          service_account: ${{ env.CWS_SERVICE_ACCOUNT }}
+          token_format: access_token
+          access_token_scopes: https://www.googleapis.com/auth/chromewebstore
+          create_credentials_file: false
+          export_environment_variables: false
+
+      - name: Publish
+        env:
+          CHROME_WEB_STORE_ACCESS_TOKEN: ${{ steps.auth.outputs.access_token }}
+          # Staged until a few releases have gone through cleanly; then default.
+          PUBLISH_TYPE: staged
+          DRY_RUN: ${{ inputs.dry-run && '--dry-run' || '' }}
+        run: |
+          set -euo pipefail
+          shopt -s nullglob
+          zips=("$RUNNER_TEMP"/extension/*.zip)
+          if [[ ${#zips[@]} -ne 1 ]]; then
+            echo "::error::expected one zip in the artifact, found ${#zips[@]}"
+            exit 1
+          fi
+          # shellcheck disable=SC2086 # DRY_RUN is empty or one flag
+          extship chrome publish --publisher-id "$CWS_PUBLISHER_ID" --item-id "$ITEM_ID" \
+            --zip "${zips[0]}" --publish-type "$PUBLISH_TYPE" $DRY_RUN
