@@ -80,7 +80,7 @@ jobs:
           node-version: 26
 
       # An exact version; its own dependencies resolve at install time.
-      - run: npm install --global extship@0.1.0
+      - run: npm install --global extship@0.1.1
 
       # After the install and with no credentials file, so nothing else in the job can read the
       # token; the action masks it in the log.
