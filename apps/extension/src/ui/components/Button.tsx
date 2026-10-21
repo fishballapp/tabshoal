@@ -1,6 +1,6 @@
 import { Button as BaseButton } from '@base-ui/react/button';
-import { cn } from '@fishballapps/cn';
 import { cva, type VariantProps } from 'class-variance-authority';
+import { cn } from 'cn';
 import type { ComponentProps } from 'react';
 
 const buttonVariants = cva(

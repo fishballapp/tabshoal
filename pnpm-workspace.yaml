@@ -1,6 +1,5 @@
 packages:
   - apps/extension
-  - internal/cn
   - internal/extension-licence
   - internal/utils
   - internal/vite-plugins
@@ -33,11 +32,10 @@ catalog:
   "@types/node": ^24.13.4
   "@vitejs/plugin-react": ^6.1.1
   class-variance-authority: ^0.7.1
-  clsx: ^2.1.1
+  cn: ^0.4.0
   effect: 4.0.0
   quansync: ^1.0.0
   sharp: ^0.35.4
-  tailwind-merge: ^3.7.0
   tailwindcss: ^4.3.3
   tldts: ^7.4.16
   type-fest: ^5.9.0

@@ -182,9 +182,9 @@ catalogs:
     class-variance-authority:
       specifier: ^0.7.1
       version: 0.7.1
-    clsx:
-      specifier: ^2.1.1
-      version: 2.1.1
+    cn:
+      specifier: ^0.4.0
+      version: 0.4.0
     effect:
       specifier: 4.0.0
       version: 4.0.0
@@ -194,9 +194,6 @@ catalogs:
     sharp:
       specifier: ^0.35.4
       version: 0.35.4
-    tailwind-merge:
-      specifier: ^3.7.0
-      version: 3.7.0
     tailwindcss:
       specifier: ^4.3.3
       version: 4.3.3
@@ -251,9 +248,6 @@ importers:
       '@base-ui/react':
         specifier: 'catalog:'
         version: 1.8.0(@types/react@19.3.0)(react-dom@19.3.0(react@19.3.0))(react@19.3.0)
-      '@fishballapps/cn':
-        specifier: workspace:*
-        version: link:../../internal/cn
       '@fishballapps/extension-licence':
         specifier: workspace:*
         version: link:../../internal/extension-licence
@@ -263,6 +257,9 @@ importers:
       class-variance-authority:
         specifier: 'catalog:'
         version: 0.7.1
+      cn:
+        specifier: 'catalog:'
+        version: 0.4.0
       effect:
         specifier: 'catalog:'
         version: 4.0.0
@@ -309,15 +306,6 @@ importers:
       vitest:
         specifier: 'catalog:'
         version: 5.0.1(@opentelemetry/api@1.9.1)(@types/node@24.13.4)(happy-dom@20.11.2)(jsdom@30.0.1(@noble/hashes@2.4.0))(vite@8.3.0(@types/node@24.13.4)(esbuild@0.28.2)(jiti@2.7.0)(terser@5.51.2)(tsx@4.23.13)(yaml@2.9.1))
-
-  internal/cn:
-    dependencies:
-      clsx:
-        specifier: 'catalog:'
-        version: 2.1.1
-      tailwind-merge:
-        specifier: 'catalog:'
-        version: 3.7.0
 
   internal/extension-licence:
     dependencies:
@@ -1296,6 +1284,11 @@ packages:
     resolution: {integrity: sha512-eYm0QWBtUrBWZWG0d386OGAw16Z995PiOVo2B7bjWSbHedGl5e0ZWaq65kOGgUSNesEIDkB9ISbTg/JK9dhCZA==}
     engines: {node: '>=6'}
 
+  cn@0.4.0:
+    resolution: {integrity: sha512-qOAeUhPwPzBxx6jaeQdo646XIKliKHc2j1ZF7Ngb1o0pJZKH5gq8FkA0aVdUdPFUDXNXyUCXpCtoJISo6dhizg==}
+    engines: {node: '>=20'}
+    hasBin: true
+
   commander@2.20.3:
     resolution: {integrity: sha512-GpVkmM8vF2vQUkj2LvZmD35JxeJOLCwJ9cUkugyk2nuhbv3+mJvpLYYt+0+USMxE+oj+ey/lJEnhZw75x/OMcQ==}
 
@@ -1647,9 +1640,6 @@ packages:
   tagged-tag@1.0.0:
     resolution: {integrity: sha512-yEFYrVhod+hdNyx7g5Bnkkb0G6si8HJurOoOEgC8B/O0uXLHlaey/65KRv6cuWBNhBgHKAROVpc7QyYqE5gFng==}
     engines: {node: '>=20'}
-
-  tailwind-merge@3.7.0:
-    resolution: {integrity: sha512-XPPUyAc+cvspz3lHTcR/QgPfW2A0lv/xQNIjX3HGhLR+Nq2lHaLq5MtTesHn8GUr3W3DguT2KT5x3NVgRtYwmA==}
 
   tailwindcss@4.3.3:
     resolution: {integrity: sha512-gOhV3P7ufE62QDGg1zVaTgCR+EtPv92k2nIhVcVKcLmxT1sUBsQGhnZj175j+MqRt4zLF7ic+sCYjfhxMxj7YQ==}
@@ -2492,6 +2482,8 @@ snapshots:
 
   clsx@2.1.1: {}
 
+  cn@0.4.0: {}
+
   commander@2.20.3:
     optional: true
 
@@ -2861,8 +2853,6 @@ snapshots:
     optional: true
 
   tagged-tag@1.0.0: {}
-
-  tailwind-merge@3.7.0: {}
 
   tailwindcss@4.3.3: {}
 

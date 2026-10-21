@@ -21,10 +21,10 @@
   },
   "dependencies": {
     "@base-ui/react": "catalog:",
-    "@fishballapps/cn": "workspace:*",
     "@fishballapps/extension-licence": "workspace:*",
     "@fishballapps/utils": "workspace:*",
     "class-variance-authority": "catalog:",
+    "cn": "catalog:",
     "effect": "catalog:",
     "react": "catalog:web",
     "react-dom": "catalog:web",
