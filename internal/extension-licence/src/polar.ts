@@ -23,8 +23,8 @@ const ValidatedKeySchema = Schema.Struct({
 });
 
 /**
- * Asks Polar about a key, against each of the extension's benefits in turn. The organization is
- * shared by every Fishball app, so a key is checked against a benefit too: without one, another
+ * Asks Polar about a key, against each of the extension's benefits in turn. The sandbox organization
+ * is shared by every Fishball app, so a key is checked against a benefit too: without one, another
  * app's key would validate. A key of another benefit answers 404 "License key does not match given
  * benefit.", so a rejection moves on to the next benefit; any other answer is final.
  */
