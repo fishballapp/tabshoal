@@ -97,8 +97,7 @@ jobs:
       - name: Publish
         env:
           CHROME_WEB_STORE_ACCESS_TOKEN: ${{ steps.auth.outputs.access_token }}
-          # Staged until a few releases have gone through cleanly; then default.
-          PUBLISH_TYPE: staged
+          PUBLISH_TYPE: default
           DRY_RUN: ${{ inputs.dry-run && '--dry-run' || '' }}
         run: |
           set -euo pipefail
