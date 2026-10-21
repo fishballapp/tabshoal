@@ -17,12 +17,28 @@ import type { Message, Reply } from './messages';
 import { loadSettings } from './settings';
 
 // Every listener is registered synchronously at the top level, so Chrome can wake this worker for
-// any of them. Nothing about tabs or groups is kept between events: each run reads the browser.
+// any of them. Nothing about tabs or groups is kept between events, only which windows changed
+// their active tab since the last run: each run reads the browser.
 
 /** One queue for everything that reads or writes tabs, so runs never interleave. */
 const enqueue = createAsyncQueue();
 
-const reconcile = async () => {
+type CollapseDue = ReadonlySet<WindowId> | 'every-window';
+
+/**
+ * Where the next run collapses the groups away from the active tab: the windows whose active tab
+ * changed, or every window after a settings change or Regroup all.
+ */
+let collapseDue: CollapseDue = new Set();
+
+const markCollapseDue = (due: CollapseDue) => {
+  collapseDue =
+    due === 'every-window' || collapseDue === 'every-window'
+      ? 'every-window'
+      : collapseDue.union(due);
+};
+
+const reconcile = async (due: CollapseDue) => {
   if (!isGroupingAllowed(await loadEntitlement())) return;
   const [windows, settings, session] = await Promise.all([
     takeSnapshot(),
@@ -37,7 +53,14 @@ const reconcile = async () => {
   );
   const provisionalGroupIds = session.provisionalGroupIds.intersection(untitledGroupIds);
   await saveSession({ ourTabIds: ourTabIdsIn(windows, provisionalGroupIds), provisionalGroupIds });
-  const operations = plan({ windows, settings, ...session, provisionalGroupIds });
+  const collapsingWindowIds = due === 'every-window' ? new Set(windows.map(({ id }) => id)) : due;
+  const operations = plan({
+    windows,
+    settings,
+    ...session,
+    provisionalGroupIds,
+    collapsingWindowIds,
+  });
   if (operations.length === 0) return;
   for (const operation of operations) await applyOperation(operation);
   const [after, latest] = await Promise.all([takeSnapshot(), loadSession()]);
@@ -52,8 +75,10 @@ let retryAttempt = 0;
  * the snapshot and the call. Each retry plans afresh.
  */
 const reconcileOrRetry = async () => {
+  const due = collapseDue;
+  collapseDue = new Set();
   try {
-    await reconcile();
+    await reconcile(due);
     retryAttempt = 0;
   } catch (error) {
     if (retryAttempt >= RETRY_LIMIT) {
@@ -62,6 +87,7 @@ const reconcileOrRetry = async () => {
       console.error('TabShoal gave up grouping after retries', error);
       return;
     }
+    markCollapseDue(due);
     scheduleReconcile((isDragging(error) ? 300 : 100) * 2 ** retryAttempt++);
   }
 };
@@ -90,6 +116,7 @@ const regroupAll = () =>
       }),
     );
     await saveSession({ untrackedTabIds: untrackedTabIds.intersection(inUserGroups) });
+    markCollapseDue('every-window');
     await reconcileOrRetry();
   });
 
@@ -216,6 +243,7 @@ chrome.tabs.onAttached.addListener(() => scheduleReconcile());
 chrome.tabs.onDetached.addListener(() => scheduleReconcile());
 chrome.tabs.onActivated.addListener(({ tabId, windowId }) => {
   void enqueue(() => recordActive(TabId(tabId), WindowId(windowId)));
+  markCollapseDue(new Set([WindowId(windowId)]));
   scheduleReconcile();
 });
 // A group dragged out of our block at the start swims back on the next run.
@@ -250,6 +278,7 @@ chrome.storage.onChanged.addListener((changes, area) => {
     area === 'sync' ||
     (area === 'local' && ('licence' in changes || 'installedAt' in changes)) ||
     (area === 'session' && 'pausedWindowIds' in changes);
+  if (area === 'sync') markCollapseDue('every-window');
   if (isRelevant) scheduleReconcile();
 });
 

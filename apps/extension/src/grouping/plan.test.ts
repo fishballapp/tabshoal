@@ -54,6 +54,7 @@ const input = (
   windows: [{ id: WINDOW, ...window }],
   untrackedTabIds: new Set(),
   pausedWindowIds: new Set(),
+  collapsingWindowIds: new Set([WINDOW]),
   provisionalGroupIds: new Set(),
   ...overrides,
   settings: { ...DEFAULT_SETTINGS, ...overrides.settings },
@@ -611,6 +612,28 @@ describe('plan', () => {
         expect.objectContaining({ type: 'create', tabIds: [5, 6], isCollapsed: true }),
         { type: 'update', groupId: 7, isCollapsed: false },
         { type: 'update', groupId: 8, isCollapsed: true },
+      ]);
+    });
+
+    it('leaves a group the user opened alone until the active tab changes', () => {
+      const { operations } = settle(
+        input(
+          {
+            tabs: [
+              tab(1, 'https://a.com', { groupId: GroupId(7), isActive: true }),
+              tab(2, 'https://a.com', { groupId: GroupId(7) }),
+              tab(3, 'https://b.com', { groupId: GroupId(8) }),
+              tab(4, 'https://b.com', { groupId: GroupId(8) }),
+              tab(5, 'https://c.com'),
+              tab(6, 'https://c.com'),
+            ],
+            groups: [ours(7, 'a'), ours(8, 'b')],
+          },
+          { settings: { shouldCollapseInactive: true }, collapsingWindowIds: new Set() },
+        ),
+      );
+      expect(operations).toEqual([
+        expect.objectContaining({ type: 'create', tabIds: [5, 6], isCollapsed: true }),
       ]);
     });
 

@@ -41,6 +41,13 @@ export type PlanInput = {
   /** Tabs the user took out of one of our groups; left alone until Regroup all. */
   untrackedTabIds: ReadonlySet<TabId>;
   pausedWindowIds: ReadonlySet<WindowId>;
+  /**
+   * Windows whose groups away from the active tab collapse in this plan, with the setting on: those
+   * whose active tab changed since the last run, or every window after a settings change or Regroup
+   * all. Elsewhere a group stays as the user left it, so one they open to tidy stays open while they
+   * close its tabs.
+   */
+  collapsingWindowIds: ReadonlySet<WindowId>;
   /** Groups we created but may not have titled yet (see {@link isOurGroup}). */
   provisionalGroupIds: ReadonlySet<GroupId>;
 };
@@ -82,19 +89,35 @@ export const plan = ({
   settings,
   untrackedTabIds,
   pausedWindowIds,
+  collapsingWindowIds,
   provisionalGroupIds,
 }: PlanInput) =>
   windows
     .filter(({ id }) => !pausedWindowIds.has(id))
-    .flatMap(window => planWindow(window, settings, untrackedTabIds, provisionalGroupIds));
+    .flatMap(window =>
+      planWindow(window, {
+        settings,
+        untrackedTabIds,
+        provisionalGroupIds,
+        isCollapsing: settings.shouldCollapseInactive && collapsingWindowIds.has(window.id),
+      }),
+    );
 
 type TrackedTab = TabSnapshot & { site: Site };
 
 const planWindow = (
   { id: windowId, tabs, groups }: WindowSnapshot,
-  settings: Settings,
-  untrackedTabIds: ReadonlySet<TabId>,
-  provisionalGroupIds: ReadonlySet<GroupId>,
+  {
+    settings,
+    untrackedTabIds,
+    provisionalGroupIds,
+    isCollapsing,
+  }: {
+    settings: Settings;
+    untrackedTabIds: ReadonlySet<TabId>;
+    provisionalGroupIds: ReadonlySet<GroupId>;
+    isCollapsing: boolean;
+  },
 ): Operation[] => {
   const ourGroups = groups.filter(group => isOurGroup(group, provisionalGroupIds));
   const ourGroupIds = new Set(ourGroups.map(({ id }) => id));
@@ -121,8 +144,7 @@ const planWindow = (
   const groupOf = assignGroups(ourGroups, shoals, settings);
 
   const activeKey = tracked.find(({ isActive }) => isActive)?.site.key;
-  const collapsedFor = (key: string, current: boolean) =>
-    settings.shouldCollapseInactive ? key !== activeKey : current;
+  const shouldCollapse = (key: string) => settings.shouldCollapseInactive && key !== activeKey;
 
   const kept = [...shoals].flatMap(([key, members]) => {
     const group = groupOf.get(key);
@@ -133,7 +155,7 @@ const planWindow = (
   const keptOperations = kept.flatMap(({ key, members, group }): Operation[] => {
     const title = titleFor(key, settings.titleStyle);
     const strays = members.filter(({ groupId }) => groupId !== group.id).map(({ id }) => id);
-    const isCollapsed = collapsedFor(key, group.isCollapsed);
+    const isCollapsed = isCollapsing ? shouldCollapse(key) : group.isCollapsed;
     return [
       ...(strays.length > 0 ? [{ type: 'move' as const, groupId: group.id, tabIds: strays }] : []),
       ...(group.title !== title || group.isCollapsed !== isCollapsed
@@ -209,7 +231,7 @@ const planWindow = (
       tabIds: members.map(({ id }) => id),
       title: titleFor(key, settings.titleStyle),
       color: colorFor(key),
-      isCollapsed: collapsedFor(key, false),
+      isCollapsed: shouldCollapse(key),
     }),
   );
 

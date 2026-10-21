@@ -68,7 +68,8 @@ With the build loaded:
 6. Turn on **Pause on this window**: new tabs there stay ungrouped. Turn it off: they group.
 7. In Options, add a site you have grouped to **Sites never to group**: its group dissolves.
    Switch the group names to `🐟 google.com`: groups are renamed. Turn on **Collapse groups you're
-   not using**: every group but the current tab's folds. Turn on **Keep groups at the start**:
+   not using**: every group but the current tab's folds. Open one from its header and close its tabs
+   one by one: it stays open until you switch tabs. Turn on **Keep groups at the start**:
    TabShoal's groups line up after the pinned tabs, your own groups after them; drag one of them
    away and it swims back.
 8. Open a tab from another one, then close it while you're on it: you land back on the tab that
