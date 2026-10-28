@@ -1,4 +1,4 @@
-import { isGroupingAllowed } from '@fishballapps/extension-licence/entitlement';
+import { type Entitlement, isGroupingAllowed } from '@fishballapps/extension-licence/entitlement';
 import { loadEntitlement, recordInstall } from '@fishballapps/extension-licence/store';
 import {
   createLicenceWorker,
@@ -38,8 +38,17 @@ const markCollapseDue = (due: CollapseDue) => {
       : collapseDue.union(due);
 };
 
+const ICONS = { 16: 'icons/icon-16.png', 32: 'icons/icon-32.png' };
+const STOPPED_ICONS = { 16: 'icons/stopped-16.png', 32: 'icons/stopped-32.png' };
+
+/** A small amber "!" on the toolbar icon while grouping has stopped; the panel says why. */
+const showEntitlement = (entitlement: Entitlement) =>
+  chrome.action.setIcon({ path: isGroupingAllowed(entitlement) ? ICONS : STOPPED_ICONS });
+
 const reconcile = async (due: CollapseDue) => {
-  if (!isGroupingAllowed(await loadEntitlement())) return;
+  const entitlement = await loadEntitlement();
+  await showEntitlement(entitlement);
+  if (!isGroupingAllowed(entitlement)) return;
   const [windows, settings, session] = await Promise.all([
     takeSnapshot(),
     loadSettings(),
