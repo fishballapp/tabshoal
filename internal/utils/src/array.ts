@@ -28,6 +28,15 @@ export const chunk = <T>(xs: readonly T[], n: number): T[][] => {
 export const count = <T>(xs: readonly T[], predicate: (x: T) => boolean): number =>
   xs.reduce((n, x) => (predicate(x) ? n + 1 : n), 0);
 
+/** A copy with the element at `fromIndex` moved to `toIndex`; an out-of-range `fromIndex` is a no-op. */
+export const moveItem = <T>(xs: readonly T[], fromIndex: number, toIndex: number): T[] => {
+  const next = [...xs];
+  const [moved] = next.splice(fromIndex, 1);
+  if (moved === undefined) return [...xs];
+  next.splice(toIndex, 0, moved);
+  return next;
+};
+
 /** Dedupe by a derived key, keeping the first occurrence of each key. */
 export const uniqBy = <T, K>(xs: readonly T[], getKey: (x: T) => K): T[] => {
   const seen = new Set<K>();

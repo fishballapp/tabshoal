@@ -1,7 +1,29 @@
 import { describe, expect, it } from 'vitest';
-import { chunk, count, fuzzySort, limitMatches, pickRandom, shuffled, uniqBy } from './array';
+import {
+  chunk,
+  count,
+  fuzzySort,
+  limitMatches,
+  moveItem,
+  pickRandom,
+  shuffled,
+  uniqBy,
+} from './array';
 
 describe('array.ts', () => {
+  describe('moveItem', () => {
+    it('moves an element forwards and backwards without touching the input', () => {
+      const xs = ['a', 'b', 'c', 'd'];
+      expect(moveItem(xs, 0, 2)).toEqual(['b', 'c', 'a', 'd']);
+      expect(moveItem(xs, 3, 1)).toEqual(['a', 'd', 'b', 'c']);
+      expect(xs).toEqual(['a', 'b', 'c', 'd']);
+    });
+
+    it('returns a copy for an out-of-range source', () => {
+      expect(moveItem(['a'], 5, 0)).toEqual(['a']);
+    });
+  });
+
   describe('fuzzySort', () => {
     it('prioritizes substring matches', () => {
       const options = ['apple', 'pineapple', 'grape', 'apricot'];
