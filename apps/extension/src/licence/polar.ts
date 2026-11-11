@@ -1,4 +1,4 @@
-import type { LicenceServer } from '@fishballapps/extension-licence/polar';
+import type { LicenceServer } from '@internal/extension-licence/polar';
 import { POLAR, type PolarConfig } from './polar-config';
 
 export const polar: PolarConfig =

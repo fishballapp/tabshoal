@@ -1,4 +1,4 @@
-# @fishballapps/extension-licence
+# @internal/extension-licence
 
 A Chrome extension's licence, sold through [Polar](https://polar.sh) licence keys: a trial counted
 in the browser, keys checked against Polar, and a daily re-check. TabShoal and Vinimal use it.

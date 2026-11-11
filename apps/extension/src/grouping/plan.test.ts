@@ -1,4 +1,4 @@
-import { count } from '@fishballapps/utils';
+import { count } from '@internal/utils';
 import { describe, expect, it } from 'vitest';
 import { DEFAULT_SETTINGS, type Settings } from '../settings';
 import {

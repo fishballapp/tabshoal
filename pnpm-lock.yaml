@@ -248,10 +248,10 @@ importers:
       '@base-ui/react':
         specifier: 'catalog:'
         version: 1.8.0(@types/react@19.3.0)(react-dom@19.3.0(react@19.3.0))(react@19.3.0)
-      '@fishballapps/extension-licence':
+      '@internal/extension-licence':
         specifier: workspace:*
         version: link:../../internal/extension-licence
-      '@fishballapps/utils':
+      '@internal/utils':
         specifier: workspace:*
         version: link:../../internal/utils
       class-variance-authority:
@@ -273,7 +273,7 @@ importers:
         specifier: 'catalog:'
         version: 7.4.16
     devDependencies:
-      '@fishballapps/vite-plugins':
+      '@internal/vite-plugins':
         specifier: workspace:*
         version: link:../../internal/vite-plugins
       '@tailwindcss/vite':
@@ -309,7 +309,7 @@ importers:
 
   internal/extension-licence:
     dependencies:
-      '@fishballapps/utils':
+      '@internal/utils':
         specifier: workspace:*
         version: link:../utils
       effect:

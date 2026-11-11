@@ -1,6 +1,6 @@
 import { Collapsible } from '@base-ui/react/collapsible';
-import type { Entitlement, StoppedEntitlement } from '@fishballapps/extension-licence/entitlement';
-import type { Validation } from '@fishballapps/extension-licence/polar';
+import type { Entitlement, StoppedEntitlement } from '@internal/extension-licence/entitlement';
+import type { Validation } from '@internal/extension-licence/polar';
 import { useState } from 'react';
 import { polar } from '../../licence/polar';
 import { formatYearlyPrice } from '../../licence/price';

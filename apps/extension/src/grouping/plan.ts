@@ -1,4 +1,4 @@
-import { count, sum } from '@fishballapps/utils';
+import { count, sum } from '@internal/utils';
 import * as Brand from 'effect/Brand';
 import type { Settings } from '../settings';
 import {

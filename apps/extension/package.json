@@ -21,8 +21,8 @@
   },
   "dependencies": {
     "@base-ui/react": "catalog:",
-    "@fishballapps/extension-licence": "workspace:*",
-    "@fishballapps/utils": "workspace:*",
+    "@internal/extension-licence": "workspace:*",
+    "@internal/utils": "workspace:*",
     "class-variance-authority": "catalog:",
     "cn": "catalog:",
     "effect": "catalog:",
@@ -31,7 +31,7 @@
     "tldts": "catalog:"
   },
   "devDependencies": {
-    "@fishballapps/vite-plugins": "workspace:*",
+    "@internal/vite-plugins": "workspace:*",
     "@tailwindcss/vite": "catalog:",
     "@types/chrome": "catalog:",
     "@types/node": "catalog:",

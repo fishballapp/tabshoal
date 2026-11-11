@@ -1,5 +1,5 @@
 {
-  "name": "@fishballapps/extension-licence",
+  "name": "@internal/extension-licence",
   "version": "0.0.0",
   "private": true,
   "license": "GPL-3.0-only",
@@ -16,7 +16,7 @@
     "check:effect": "effect-tsgo diagnostics --project tsconfig.json --format text"
   },
   "dependencies": {
-    "@fishballapps/utils": "workspace:*",
+    "@internal/utils": "workspace:*",
     "effect": "catalog:"
   },
   "devDependencies": {

@@ -1,4 +1,4 @@
-import type { Validation } from '@fishballapps/extension-licence/polar';
+import type { Validation } from '@internal/extension-licence/polar';
 
 /** What the panel asks of the service worker. */
 export type Message = { type: 'regroup-all' } | { type: 'activate-licence'; key: string };

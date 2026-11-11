@@ -1,4 +1,4 @@
-import { createAsyncQueue } from '@fishballapps/utils';
+import { createAsyncQueue } from '@internal/utils';
 import { afterValidation, grantedLicence } from './entitlement';
 import { type LicenceServer, type Validation, validateKey } from './polar';
 import { loadLicensing, saveLicence } from './store';

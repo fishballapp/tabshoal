@@ -1,5 +1,5 @@
-import { type Entitlement, isGroupingAllowed } from '@fishballapps/extension-licence/entitlement';
-import { loadEntitlement } from '@fishballapps/extension-licence/store';
+import { type Entitlement, isGroupingAllowed } from '@internal/extension-licence/entitlement';
+import { loadEntitlement } from '@internal/extension-licence/store';
 import { useEffect, useState } from 'react';
 import { loadSession, saveSession } from '../../chrome/session';
 import { WindowId } from '../../grouping/plan';

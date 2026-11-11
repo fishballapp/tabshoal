@@ -1,4 +1,4 @@
-import { type Currency, formatLocalPrice } from '@fishballapps/utils';
+import { type Currency, formatLocalPrice } from '@internal/utils';
 
 /** The yearly price in each currency the Polar product carries: $10 / £10 / €10. */
 export const YEARLY_PRICE: Readonly<Record<Currency, number>> = { USD: 10, GBP: 10, EUR: 10 };

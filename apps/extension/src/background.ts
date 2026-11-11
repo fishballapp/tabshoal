@@ -1,11 +1,11 @@
-import { type Entitlement, isGroupingAllowed } from '@fishballapps/extension-licence/entitlement';
-import { loadEntitlement, recordInstall } from '@fishballapps/extension-licence/store';
+import { type Entitlement, isGroupingAllowed } from '@internal/extension-licence/entitlement';
+import { loadEntitlement, recordInstall } from '@internal/extension-licence/store';
 import {
   createLicenceWorker,
   LICENCE_ALARM,
   startLicenceAlarm,
-} from '@fishballapps/extension-licence/worker';
-import { createAsyncQueue } from '@fishballapps/utils';
+} from '@internal/extension-licence/worker';
+import { createAsyncQueue } from '@internal/utils';
 import { applyOperation, isOurEcho, ourTabIdsIn, takeSnapshot } from './chrome/browser';
 import { isDragging } from './chrome/dragging';
 import { tabToReturnTo } from './chrome/opener';
