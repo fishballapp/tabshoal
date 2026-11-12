@@ -12,6 +12,7 @@
     "quansync": "catalog:"
   },
   "devDependencies": {
+    "temporal-polyfill": "catalog:",
     "type-fest": "catalog:"
   },
   "scripts": {

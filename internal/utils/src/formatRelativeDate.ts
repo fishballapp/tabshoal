@@ -10,18 +10,13 @@
 //   3–6     daysAgo(n)
 //   7–13    lastWeekday(weekdayIndex)   (rolling 7-day window, weekday from the target date)
 //   14+     absolute(date)
-const startOfDay = (d: Date): Date => new Date(d.getFullYear(), d.getMonth(), d.getDate());
-
-const toDate = (d: Date | Temporal.Instant): Date =>
-  d instanceof Date ? d : new Date(d.epochMilliseconds);
-
 export type RelativeDateLabels = {
   today: string;
   yesterday: string;
   dayBeforeYesterday: string;
   daysAgo: (days: number) => string;
   lastWeekday: (weekdayIndex: number) => string;
-  absolute: (date: Date) => string;
+  absolute: (date: Temporal.PlainDate) => string;
 };
 
 const ZH_HK_WEEKDAY_CHARS = ['日', '一', '二', '三', '四', '五', '六'] as const;
@@ -38,23 +33,24 @@ export const ZH_HK_RELATIVE_DATE_LABELS: RelativeDateLabels = {
     }
     return `上個禮拜${weekday}`;
   },
-  absolute: date => `${date.getMonth() + 1}月${date.getDate()}日`,
+  absolute: date => `${date.month}月${date.day}日`,
 };
 
 export const formatRelativeDate = (
-  date: Date | Temporal.Instant,
-  now: Date | Temporal.Instant = new Date(),
+  date: Temporal.Instant,
+  now: Temporal.Instant = Temporal.Now.instant(),
   labels: RelativeDateLabels = ZH_HK_RELATIVE_DATE_LABELS,
 ): string => {
-  const normDate = toDate(date);
-  const normNow = toDate(now);
-  const diffDays = Math.floor(
-    (startOfDay(normNow).getTime() - startOfDay(normDate).getTime()) / 86_400_000,
-  );
+  const timeZone = Temporal.Now.timeZoneId();
+  const plainDate = date.toZonedDateTimeISO(timeZone).toPlainDate();
+  const diffDays = plainDate.until(now.toZonedDateTimeISO(timeZone).toPlainDate(), {
+    largestUnit: 'days',
+  }).days;
   if (diffDays === 0) return labels.today;
   if (diffDays === 1) return labels.yesterday;
   if (diffDays === 2) return labels.dayBeforeYesterday;
   if (diffDays >= 3 && diffDays <= 6) return labels.daysAgo(diffDays);
-  if (diffDays >= 7 && diffDays <= 13) return labels.lastWeekday(normDate.getDay());
-  return labels.absolute(normDate);
+  // dayOfWeek is 1 (Mon) … 7 (Sun); the labels index from Sunday = 0.
+  if (diffDays >= 7 && diffDays <= 13) return labels.lastWeekday(plainDate.dayOfWeek % 7);
+  return labels.absolute(plainDate);
 };

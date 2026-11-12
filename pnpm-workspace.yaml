@@ -27,6 +27,7 @@ catalog:
   quansync: ^1.0.0
   sharp: ^0.35.5
   tailwindcss: ^4.3.3
+  temporal-polyfill: ^1.0.8
   tldts: ^7.4.16
   type-fest: ^5.9.0
   typescript: ~7.0.2
