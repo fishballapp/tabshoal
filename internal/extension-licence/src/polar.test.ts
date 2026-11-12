@@ -19,7 +19,10 @@ describe('readValidation', () => {
       await readValidation(
         json(200, { status: 'granted', expires_at: '2027-10-13T01:34:41.813291Z' }),
       ),
-    ).toEqual({ type: 'granted', expiresAt: Date.UTC(2027, 9, 13, 1, 34, 41, 813) });
+    ).toEqual({
+      type: 'granted',
+      expiresAt: Temporal.Instant.from('2027-10-13T01:34:41.813Z').epochMilliseconds,
+    });
     expect(await readValidation(json(200, { status: 'granted', expires_at: null }))).toEqual({
       type: 'granted',
     });
