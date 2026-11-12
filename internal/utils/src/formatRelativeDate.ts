@@ -1,3 +1,5 @@
+import { deviceTimeZoneId } from './deviceTimeZoneId';
+
 // Human-readable relative date, anchored on calendar days (boundaries roll at
 // midnight, not 24h windows). The wording is supplied via `labels` so this
 // org-tier util stays language-neutral; ZH_HK_RELATIVE_DATE_LABELS is the
@@ -41,7 +43,7 @@ export const formatRelativeDate = (
   now: Temporal.Instant = Temporal.Now.instant(),
   labels: RelativeDateLabels = ZH_HK_RELATIVE_DATE_LABELS,
 ): string => {
-  const timeZone = Temporal.Now.timeZoneId();
+  const timeZone = deviceTimeZoneId();
   const plainDate = date.toZonedDateTimeISO(timeZone).toPlainDate();
   const diffDays = plainDate.until(now.toZonedDateTimeISO(timeZone).toPlainDate(), {
     largestUnit: 'days',

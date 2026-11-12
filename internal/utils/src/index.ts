@@ -5,6 +5,7 @@ export * from './createAsyncLock';
 export * from './createAsyncQueue';
 export * from './createFindBy';
 export * from './createMigrator';
+export * from './deviceTimeZoneId';
 export * from './formatRelativeDate';
 export * from './localPrice';
 export * from './number';
