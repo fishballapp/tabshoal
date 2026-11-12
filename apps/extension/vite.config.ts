@@ -13,7 +13,8 @@ const manifest: chrome.runtime.ManifestV3 = {
   short_name: 'TabShoal',
   description: 'Groups your tabs by site, automatically.',
   version: packageJson.version,
-  minimum_chrome_version: '128',
+  // Temporal, which the licence check reads Polar's expiry dates with.
+  minimum_chrome_version: '144',
   icons,
   action: { default_popup: 'popup.html', default_title: 'TabShoal', default_icon: icons },
   options_ui: { page: 'options.html', open_in_tab: true },
