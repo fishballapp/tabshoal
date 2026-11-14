@@ -5,6 +5,10 @@ import * as Schema from 'effect/Schema';
 export const MINIMUM_TABS_RANGE = { minimum: 2, maximum: 10 } as const;
 
 export const SettingsSchema = Schema.Struct({
+  /** One group per hostname (`mail.google.com`), or per registrable domain (`google.com`). */
+  groupBy: Schema.Literals(['subdomain', 'domain']).pipe(
+    Schema.withDecodingDefaultKey(Effect.succeed('subdomain' as const)),
+  ),
   minimumTabs: Schema.Int.check(Schema.isBetween(MINIMUM_TABS_RANGE)).pipe(
     Schema.withDecodingDefaultKey(Effect.succeed(2)),
   ),

@@ -1,8 +1,8 @@
 import { NumberField } from '@base-ui/react/number-field';
 import { Radio } from '@base-ui/react/radio';
 import { RadioGroup } from '@base-ui/react/radio-group';
-import { useState } from 'react';
-import { type TitleStyle, visibleTitleFor } from '../../grouping/site';
+import { type ReactNode, useState } from 'react';
+import { visibleTitleFor } from '../../grouping/site';
 import {
   loadSettings,
   MINIMUM_TABS_RANGE,
@@ -20,6 +20,7 @@ export const Options = () => {
   const settings = useStored('sync', ['settings'], loadSettings);
   if (settings === undefined) return null;
   const update = (patch: Partial<Settings>) => void saveSettings({ ...settings, ...patch });
+  const exampleSite = settings.groupBy === 'subdomain' ? 'mail.google.com' : 'google.com';
 
   return (
     <main className="mx-auto flex max-w-xl flex-col gap-6 px-6 py-10">
@@ -31,7 +32,14 @@ export const Options = () => {
         </div>
       </header>
 
-      <section className="divide-y divide-border rounded-lg border border-border bg-card">
+      <Section title="What becomes a group">
+        <ChoiceRow
+          id="group-by"
+          label="Group by"
+          options={GROUP_BY_OPTIONS}
+          value={settings.groupBy}
+          onChange={groupBy => update({ groupBy })}
+        />
         <Row
           label="Minimum tabs per group"
           htmlFor="minimum-tabs"
@@ -54,14 +62,23 @@ export const Options = () => {
             </NumberField.Root>
           }
         />
-        <TitleStyleRow
+        <NeverGroup sites={settings.neverGroup} onChange={neverGroup => update({ neverGroup })} />
+      </Section>
+
+      <Section title="How groups look">
+        <ChoiceRow
+          id="title-style"
+          label="Group names"
+          options={[
+            { value: 'name', label: 'Short', example: visibleTitleFor(exampleSite, 'name') },
+            { value: 'domain', label: 'Full', example: visibleTitleFor(exampleSite, 'domain') },
+          ]}
           value={settings.titleStyle}
           onChange={titleStyle => update({ titleStyle })}
         />
         <Row
           label="Collapse groups you’re not using"
           htmlFor="collapse-inactive"
-          description="Only the group of the tab you’re on stays open."
           control={
             <Switch
               id="collapse-inactive"
@@ -73,7 +90,7 @@ export const Options = () => {
         <Row
           label="Keep groups at the start"
           htmlFor="keep-groups-at-start"
-          description="TabShoal’s groups stay together right after your pinned tabs."
+          description="Right after your pinned tabs."
           control={
             <Switch
               id="keep-groups-at-start"
@@ -82,67 +99,77 @@ export const Options = () => {
             />
           }
         />
-      </section>
+      </Section>
 
-      <NeverGroup sites={settings.neverGroup} onChange={neverGroup => update({ neverGroup })} />
-
-      <section className="flex flex-col gap-3">
-        <h2 className="font-medium">Advanced</h2>
-        <div className="rounded-lg border border-border bg-card">
-          <Row
-            label="Closing a tab goes back to the tab that opened it"
-            htmlFor="return-to-opener"
-            description="Only when that tab is still open in this window and you were on it in the last 10 minutes."
-            control={
-              <Switch
-                id="return-to-opener"
-                checked={settings.shouldReturnToOpener}
-                onCheckedChange={shouldReturnToOpener => update({ shouldReturnToOpener })}
-              />
-            }
-          />
-        </div>
-      </section>
+      <Section title="Closing tabs">
+        <Row
+          label="Closing a tab goes back to the tab that opened it"
+          htmlFor="return-to-opener"
+          description="Only when that tab is still open in this window and you were on it in the last 10 minutes."
+          control={
+            <Switch
+              id="return-to-opener"
+              checked={settings.shouldReturnToOpener}
+              onCheckedChange={shouldReturnToOpener => update({ shouldReturnToOpener })}
+            />
+          }
+        />
+      </Section>
     </main>
   );
 };
 
+/** The settings that answer one question, under a heading that asks it. */
+const Section = ({ title, children }: { title: string; children: ReactNode }) => (
+  <section className="flex flex-col gap-2">
+    <h2 className="font-medium text-muted-foreground">{title}</h2>
+    <div className="divide-y divide-border rounded-lg border border-border bg-card">{children}</div>
+  </section>
+);
+
 const STEPPER =
   'flex w-8 items-center justify-center bg-card text-muted-foreground select-none hover:bg-muted hover:text-foreground data-disabled:opacity-40';
 
-const TITLE_STYLES: readonly { style: TitleStyle; label: string }[] = [
-  { style: 'name', label: 'Name' },
-  { style: 'domain', label: 'Domain' },
-];
+const GROUP_BY_OPTIONS = [
+  { value: 'subdomain', label: 'Subdomain', example: 'mail.google.com' },
+  { value: 'domain', label: 'Domain', example: 'google.com' },
+] as const;
 
-const TitleStyleRow = ({
+/** A setting with a few named values, each with an example of what it gives, under its label. */
+const ChoiceRow = <Value extends string>({
+  id,
+  label,
+  options,
   value,
   onChange,
 }: {
-  value: TitleStyle;
-  onChange: (value: TitleStyle) => void;
+  id: string;
+  label: string;
+  options: readonly { value: Value; label: string; example: string }[];
+  value: Value;
+  onChange: (value: Value) => void;
 }) => (
-  <div className="flex items-center justify-between gap-6 px-4 py-3">
-    <div>
-      <p id="title-style" className="font-medium">
-        Group names
-      </p>
-      <p className="mt-0.5 text-muted-foreground">How a group is labelled in the tab strip.</p>
-    </div>
+  <div className="flex flex-col gap-2 px-4 py-3">
+    <p id={id} className="font-medium">
+      {label}
+    </p>
     <RadioGroup
-      aria-labelledby="title-style"
+      aria-labelledby={id}
       value={value}
-      onValueChange={next => onChange(next === 'domain' ? 'domain' : 'name')}
-      className="flex shrink-0 rounded-md bg-muted p-0.5"
+      onValueChange={next => {
+        const option = options.find(option => option.value === next);
+        if (option !== undefined) onChange(option.value);
+      }}
+      className="flex rounded-md bg-muted p-0.5"
     >
-      {TITLE_STYLES.map(({ style, label }) => (
+      {options.map(option => (
         <Radio.Root
-          key={style}
-          value={style}
-          aria-label={label}
-          className="rounded px-2.5 py-1 font-mono text-xs text-muted-foreground data-checked:bg-card data-checked:text-foreground data-checked:shadow-sm"
+          key={option.value}
+          value={option.value}
+          className="flex flex-1 items-baseline justify-center gap-2 rounded px-2.5 py-1 text-muted-foreground data-checked:bg-card data-checked:text-foreground data-checked:shadow-sm"
         >
-          {visibleTitleFor('google.com', style)}
+          {option.label}
+          <span className="font-mono text-xs">{option.example}</span>
         </Radio.Root>
       ))}
     </RadioGroup>
@@ -159,9 +186,11 @@ const NeverGroup = ({
   const [draft, setDraft] = useState('');
   const entry = normaliseSiteEntry(draft);
   return (
-    <section className="flex flex-col gap-3">
+    <div className="flex flex-col gap-2 px-4 py-3">
       <div>
-        <h2 className="font-medium">Sites never to group</h2>
+        <label htmlFor="never-group" className="block font-medium">
+          Sites never to group
+        </label>
         <p className="mt-0.5 text-muted-foreground">
           Their tabs, and their subdomains’ tabs, are left where they are.
         </p>
@@ -176,7 +205,7 @@ const NeverGroup = ({
         }}
       >
         <input
-          aria-label="Site"
+          id="never-group"
           value={draft}
           onChange={event => setDraft(event.target.value)}
           placeholder="localhost"
@@ -189,9 +218,9 @@ const NeverGroup = ({
         </Button>
       </form>
       {sites.length > 0 && (
-        <ul className="divide-y divide-border rounded-lg border border-border bg-card">
+        <ul className="divide-y divide-border rounded-md border border-border">
           {sites.map(site => (
-            <li key={site} className="flex items-center justify-between gap-3 py-1.5 pr-1.5 pl-4">
+            <li key={site} className="flex items-center justify-between gap-3 py-1 pr-1.5 pl-2.5">
               <span className="font-mono text-xs">{site}</span>
               <Button
                 variant="link"
@@ -205,6 +234,6 @@ const NeverGroup = ({
           ))}
         </ul>
       )}
-    </section>
+    </div>
   );
 };

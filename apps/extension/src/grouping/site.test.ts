@@ -12,14 +12,30 @@ import {
 
 describe('siteOf', () => {
   it.each([
+    ['https://mail.google.com/mail/u/0', 'mail.google.com'],
+    ['https://google.com/search', 'google.com'],
+    ['https://www.google.com/search', 'google.com'],
+    ['https://www.bbc.co.uk/news', 'bbc.co.uk'],
+    ['https://www.eu.example.com/', 'eu.example.com'],
+    ['http://localhost:5173/', 'localhost'],
+    ['http://127.0.0.1:8080', '127.0.0.1'],
+    ['http://[::1]:3000/', '::1'],
+    ['https://foo.github.io', 'foo.github.io'],
+    ['https://docs.foo.github.io', 'docs.foo.github.io'],
+  ])('keys %s on %s by subdomain', (url, key) => {
+    expect(siteOf(url, 'subdomain')?.key).toBe(key);
+  });
+
+  it.each([
     ['https://mail.google.com/mail/u/0', 'google.com'],
     ['https://www.bbc.co.uk/news', 'bbc.co.uk'],
     ['http://localhost:5173/', 'localhost'],
     ['http://127.0.0.1:8080', '127.0.0.1'],
     ['http://[::1]:3000/', '::1'],
     ['https://foo.github.io', 'foo.github.io'],
-  ])('keys %s on %s', (url, key) => {
-    expect(siteOf(url)?.key).toBe(key);
+    ['https://docs.foo.github.io', 'foo.github.io'],
+  ])('keys %s on %s by domain', (url, key) => {
+    expect(siteOf(url, 'domain')?.key).toBe(key);
   });
 
   it.each([
@@ -30,7 +46,8 @@ describe('siteOf', () => {
     'data:text/plain,hi',
     undefined,
   ])('leaves %s alone', url => {
-    expect(siteOf(url)).toBeUndefined();
+    expect(siteOf(url, 'subdomain')).toBeUndefined();
+    expect(siteOf(url, 'domain')).toBeUndefined();
   });
 });
 
@@ -43,6 +60,12 @@ describe('titleFor', () => {
 
   it('names a private-suffix site by its own label', () => {
     expect(titleFor('alice.github.io', 'name')).toBe(`🐟 alice${WATERMARK}`);
+  });
+
+  it('keeps the subdomain in both styles', () => {
+    expect(titleFor('mail.google.com', 'name')).toBe(`🐟 mail.google${WATERMARK}`);
+    expect(titleFor('mail.google.com', 'domain')).toBe(`🐟 mail.google.com${WATERMARK}`);
+    expect(titleFor('news.bbc.co.uk', 'name')).toBe(`🐟 news.bbc${WATERMARK}`);
   });
 
   it('keeps the registrable domain in the domain style', () => {

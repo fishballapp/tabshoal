@@ -3,7 +3,8 @@
 **Your tabs, grouped by site, automatically.** A Chrome extension: open a second tab from a site
 and the two sit together in a tab group named after it, like "🐟 github"; close one and the group goes away.
 
-- Groups by site, so `mail.google.com` and `docs.google.com` share a "🐟 google" group.
+- Groups by site: `mail.google.com` and `docs.google.com` each get a group, "🐟 mail.google" and
+  "🐟 docs.google". Or by whole domain, so they share a "🐟 google" group.
 - Leaves your own groups alone, and any tab you drag out of one of its groups.
 - Never touches pinned tabs or tabs in a split view.
 - Works per window and never moves a tab to another window.
@@ -16,6 +17,9 @@ $10, £10 or €10 a year after a 14-day free trial. Licensed under [GPL-3.0](LI
 - A site gets a group once it has **2** tabs in a window (you can raise that). When a group drops
   below the minimum, its last tab is ungrouped.
 - A tab follows its site: navigate from one site to another and it moves to that site's group.
+- A site is a hostname, with `www.` ignored: `www.google.com` and `google.com` are one site,
+  `mail.google.com` another. With **Group by** set to domain, every subdomain of `google.com` is one
+  site.
 - Groups TabShoal makes start with 🐟 so you can spot them, and carry an invisible marker at the end
   of their title. A group without the marker is yours, even one you name with a 🐟, and TabShoal
   ignores it and every tab in it.
@@ -29,9 +33,10 @@ Click the toolbar icon for **Regroup all**, **Pause on this window**, your licen
 
 | Setting | Default |
 | --- | --- |
+| Group by: subdomain (`mail.google.com`) or domain (`google.com`) | subdomain |
 | Minimum tabs per group | 2 |
 | Sites never to group, e.g. `localhost` | none |
-| Group names: `🐟 google` or `🐟 google.com` | `🐟 google` |
+| Group names: `🐟 mail.google` or `🐟 mail.google.com` | `🐟 mail.google` |
 | Collapse groups you're not using | off |
 | Keep groups at the start (right after pinned tabs) | off |
 | Closing a tab goes back to the tab that opened it | on |
@@ -67,7 +72,8 @@ With the build loaded:
 5. Make a group of your own: TabShoal leaves it and its tabs alone.
 6. Turn on **Pause on this window**: new tabs there stay ungrouped. Turn it off: they group.
 7. In Options, add a site you have grouped to **Sites never to group**: its group dissolves.
-   Switch the group names to `🐟 google.com`: groups are renamed. Turn on **Collapse groups you're
+   Switch the group names to the full hostname: groups are renamed. Open two tabs each of two
+   subdomains of one domain: two groups. Switch **Group by** to the domain: they merge into one. Turn on **Collapse groups you're
    not using**: every group but the current tab's folds. Open one from its header and close its tabs
    one by one: it stays open until you switch tabs. Turn on **Keep groups at the start**:
    TabShoal's groups line up after the pinned tabs, your own groups after them; drag one of them

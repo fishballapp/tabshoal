@@ -127,7 +127,7 @@ const planWindow = (
     if (tab.isPinned || tab.isInSplitView) return undefined;
     if (tab.groupId !== NO_GROUP && !isInOurGroup(tab)) return undefined;
     if (!isInOurGroup(tab) && untrackedTabIds.has(tab.id)) return undefined;
-    const site = siteOf(tab.url);
+    const site = siteOf(tab.url, settings.groupBy);
     if (site === undefined || isExcluded(site, settings.neverGroup)) return undefined;
     return site;
   };

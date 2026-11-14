@@ -1,6 +1,12 @@
 import { parse } from 'tldts';
 
-/** The group key of a tab: its registrable domain (eTLD+1), or the hostname where there is none. */
+/**
+ * What a group holds: every tab of one hostname (`mail.google.com`), or every tab of one registrable
+ * domain (eTLD+1, `google.com`).
+ */
+export type GroupBy = 'subdomain' | 'domain';
+
+/** A tab's group key: its hostname or registrable domain, as {@link GroupBy} says. */
 export type Site = { key: string; hostname: string };
 
 // The PSL's private section too, so `alice.github.io` and `bob.github.io` are different sites.
@@ -10,11 +16,14 @@ const PSL_OPTIONS = { allowPrivateDomains: true };
  * The site a URL belongs to, or `undefined` for anything that isn't a web page (`chrome://`, the
  * new tab page, `about:blank`, `file://`), which TabShoal leaves alone.
  */
-export const siteOf = (url: string | undefined): Site | undefined => {
+export const siteOf = (url: string | undefined, groupBy: GroupBy): Site | undefined => {
   if (url === undefined || !/^https?:\/\//iu.test(url)) return undefined;
   const { hostname, domain, isIp } = parse(url, PSL_OPTIONS);
   if (hostname === null || hostname === '') return undefined;
-  return { key: isIp === true || domain === null ? hostname : domain, hostname };
+  if (isIp === true || domain === null) return { key: hostname, hostname };
+  if (groupBy === 'domain' || hostname === domain) return { key: domain, hostname };
+  // `www.` is the same site as the name without it.
+  return { key: hostname.replace(/^www\./u, ''), hostname };
 };
 
 export type TitleStyle = 'name' | 'domain';
@@ -31,10 +40,15 @@ export const TITLE_PREFIX = '🐟 ';
 export const isOurTitle = (title: string | undefined): boolean =>
   title?.endsWith(WATERMARK) ?? false;
 
-/** What people see as a group's title: `🐟 google` in the `name` style, `🐟 google.com` in `domain`. */
+/**
+ * What people see as a group's title: the key without its public suffix in the `name` style
+ * (`🐟 google`, `🐟 mail.google`), the whole key in `domain` (`🐟 google.com`, `🐟 mail.google.com`).
+ */
 export const visibleTitleFor = (key: string, style: TitleStyle): string => {
-  const label = style === 'domain' ? key : (parse(key, PSL_OPTIONS).domainWithoutSuffix ?? key);
-  return `${TITLE_PREFIX}${label === '' ? key : label}`;
+  const { publicSuffix } = parse(key, PSL_OPTIONS);
+  const hasSuffix = publicSuffix !== null && key.endsWith(`.${publicSuffix}`);
+  const label = style === 'name' && hasSuffix ? key.slice(0, -publicSuffix.length - 1) : key;
+  return `${TITLE_PREFIX}${label}`;
 };
 
 /** The title we set: the visible title, then the watermark. */

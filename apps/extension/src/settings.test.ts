@@ -3,8 +3,9 @@ import { describe, expect, it } from 'vitest';
 import { DEFAULT_SETTINGS, normaliseSiteEntry, SettingsSchema } from './settings';
 
 describe('settings', () => {
-  it('defaults to two tabs, nothing excluded, short names, groups left as they are, closing returns to the opener', () => {
+  it('defaults to a group per subdomain, two tabs, nothing excluded, short names, groups left as they are, closing returns to the opener', () => {
     expect(DEFAULT_SETTINGS).toEqual({
+      groupBy: 'subdomain',
       minimumTabs: 2,
       neverGroup: [],
       titleStyle: 'name',

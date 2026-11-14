@@ -206,14 +206,68 @@ describe('plan', () => {
     expect(plan(input({ tabs: [tab(1, 'https://a.com')], groups: [] }))).toEqual([]);
   });
 
-  it('shares one group between subdomains of a registrable domain', () => {
+  it('gives each subdomain its own group', () => {
+    const { groups, ungrouped } = settle(
+      input({
+        tabs: [
+          tab(1, 'https://mail.google.com/a'),
+          tab(2, 'https://docs.google.com/a'),
+          tab(3, 'https://mail.google.com/b'),
+          tab(4, 'https://docs.google.com/b'),
+          tab(5, 'https://calendar.google.com'),
+        ],
+        groups: [],
+      }),
+    );
+    expect(groups).toEqual([
+      { title: title('mail.google'), tabIds: [1, 3] },
+      { title: title('docs.google'), tabIds: [2, 4] },
+    ]);
+    expect(ungrouped).toEqual([5]);
+  });
+
+  it('counts www as the site without it', () => {
     const { groups } = settle(
       input({
-        tabs: [tab(1, 'https://mail.google.com'), tab(2, 'https://docs.google.com')],
+        tabs: [tab(1, 'https://www.google.com/search'), tab(2, 'https://google.com/maps')],
         groups: [],
       }),
     );
     expect(groups).toEqual([{ title: title('google'), tabIds: [1, 2] }]);
+  });
+
+  it('shares one group between subdomains when grouping by domain', () => {
+    const { groups } = settle(
+      input(
+        {
+          tabs: [tab(1, 'https://mail.google.com'), tab(2, 'https://docs.google.com')],
+          groups: [],
+        },
+        { settings: { groupBy: 'domain' } },
+      ),
+    );
+    expect(groups).toEqual([{ title: title('google'), tabIds: [1, 2] }]);
+  });
+
+  it('splits a domain’s group by subdomain, keeping the group for the one holding most of it', () => {
+    const { groups, ungrouped } = settle(
+      input({
+        tabs: [
+          tab(1, 'https://mail.google.com/a', { groupId: GroupId(7) }),
+          tab(2, 'https://docs.google.com/a', { groupId: GroupId(7) }),
+          tab(3, 'https://docs.google.com/b', { groupId: GroupId(7) }),
+          tab(4, 'https://docs.google.com/c', { groupId: GroupId(7) }),
+          tab(5, 'https://mail.google.com/b', { groupId: GroupId(7) }),
+          tab(6, 'https://calendar.google.com', { groupId: GroupId(7) }),
+        ],
+        groups: [ours(7, 'google')],
+      }),
+    );
+    expect(groups).toEqual([
+      { title: title('docs.google'), tabIds: [2, 3, 4] },
+      { title: title('mail.google'), tabIds: [1, 5] },
+    ]);
+    expect(ungrouped).toEqual([6]);
   });
 
   it('keys IPs and localhost on the hostname, across ports', () => {
@@ -321,10 +375,10 @@ describe('plan', () => {
         plan(
           input({
             tabs: [
-              tab(1, 'https://mail.google.com', { groupId: GroupId(7) }),
-              tab(2, 'https://www.google.com/search', { groupId: GroupId(7) }),
+              tab(1, 'https://mail.google.com/mail/u/0', { groupId: GroupId(7) }),
+              tab(2, 'https://mail.google.com/mail/u/1', { groupId: GroupId(7) }),
             ],
-            groups: [ours(7, 'google')],
+            groups: [ours(7, 'mail.google')],
           }),
         ),
       ).toEqual([]);
@@ -884,9 +938,9 @@ describe('plan', () => {
           tab(2, 'https://news.ycombinator.com'),
           tab(3, 'https://gist.github.com/b', { isPinned: true }),
           tab(4, 'chrome://settings'),
-          tab(5, 'https://mail.google.com'),
+          tab(5, 'https://docs.google.com/a'),
           tab(6, 'https://github.com/c'),
-          tab(7, 'https://docs.google.com'),
+          tab(7, 'https://docs.google.com/b'),
           tab(8, 'https://example.org'),
         ],
         groups: [theirs(9, 'work')],
@@ -894,7 +948,7 @@ describe('plan', () => {
     );
     expect(groups).toEqual([
       { title: 'work', tabIds: [1] },
-      { title: title('google'), tabIds: [5, 7] },
+      { title: title('docs.google'), tabIds: [5, 7] },
     ]);
     expect(ungrouped).toEqual([2, 3, 4, 6, 8]);
   });
