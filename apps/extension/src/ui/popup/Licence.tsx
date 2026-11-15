@@ -37,11 +37,7 @@ export const Licence = ({ entitlement }: { entitlement: Entitlement }) => {
       );
     case 'licensed':
       return (
-        <div className="flex items-center justify-between gap-3">
-          <span className="flex items-center gap-1.5 text-muted-foreground">
-            <span className="size-1.5 rounded-full bg-primary" aria-hidden="true" />
-            Licensed
-          </span>
+        <div className="flex items-center justify-end">
           <a
             className="text-muted-foreground underline-offset-2 hover:text-foreground hover:underline"
             href={polar.portalUrl}

@@ -28,7 +28,6 @@ export const Options = () => {
         <Mark size={32} />
         <div>
           <h1 className="text-lg font-semibold tracking-tight">TabShoal</h1>
-          <p className="text-muted-foreground">Changes apply to your tabs straight away.</p>
         </div>
       </header>
 
